@@ -1,71 +1,64 @@
-# ElevenLabs MCP Server
+# elevenlabs-mcp
+[![License 0BSD](https://img.shields.io/badge/License-0BSD-pink.svg)](https://opensource.org/licenses/0BSD)
+[![GoDoc](https://godoc.org/github.com/taigrr/elevenlabs-mcp?status.svg)](https://godoc.org/github.com/taigrr/elevenlabs-mcp)
+[![Go Report Card](https://goreportcard.com/badge/github.com/taigrr/elevenlabs-mcp)](https://goreportcard.com/report/github.com/taigrr/elevenlabs-mcp)
 
-An MCP (Model Context Protocol) server that provides text-to-speech capabilities using ElevenLabs API.
+An MCP (Model Context Protocol) server that bridges AI assistants with ElevenLabs text-to-speech capabilities.
 
-## Features
+This server is not affiliated with, nor associated with ElevenLabs in any way.
 
-- **say**: Convert text to speech and save as MP3 file
-- **read**: Read a text file and convert it to speech
-- **play**: Play audio files using the beep library
-- **set_voice**: Change the voice used for generation (memory only)
-- **get_voices**: List available voices and show currently selected one
-- **history**: List available audio files with text summaries
+## Purpose
 
-## Setup
+This MCP server enables AI assistants to generate speech from text using the ElevenLabs API.
+It provides a seamless interface for converting text to high-quality speech, managing voice selection, and handling audio playback within MCP-compatible environments.
 
-1. Get your ElevenLabs API key from [ElevenLabs](https://elevenlabs.io)
-2. Set the environment variable:
-   ```bash
-   export XI_API_KEY=your_api_key_here
-   ```
+As a prerequisite, you must already have an account with [ElevenLabs](https://elevenlabs.io).
+After creating your account, you can get your API key [from here](https://help.elevenlabs.io/hc/en-us/articles/14599447207697-How-to-authorize-yourself-using-your-xi-api-key-).
 
-## Build
+## Installation
 
 ```bash
 go build -o elevenlabs-mcp
 ```
 
-## Usage
+## Configuration
 
-The server runs via stdio and communicates using the MCP protocol:
-
+Set your ElevenLabs API key:
 ```bash
 export XI_API_KEY=your_api_key_here
+```
+
+## Usage
+
+The server communicates via stdio using the MCP protocol:
+
+```bash
 ./elevenlabs-mcp
 ```
 
-## Tools
+Generated audio files are automatically saved to `.xi/<timestamp>-<hex5>.mp3` with corresponding `.txt` files containing the original text for reference.
 
-### say
-Convert text to speech and save as MP3.
-- **text** (string, required): Text to convert to speech
+## MCP Tools
 
-### read  
-Read a text file and convert it to speech.
-- **file_path** (string, required): Path to the text file
+The server provides the following tools to MCP clients:
 
-### play
-Play an audio file.
-- **file_path** (string, required): Path to the audio file
-
-### set_voice
-Change the voice used for generation.
-- **voice_id** (string, required): ID of the voice to use
-
-### get_voices
-List all available voices and show the currently selected one.
-- No parameters required
-
-### history
-List available audio files with text summaries.
-- No parameters required
-
-## Audio Files
-
-Generated audio files are saved to `.xi/<timestamp>-<hex5>.mp3` with corresponding `.txt` files containing the original text. Files can be replayed using the `play` tool.
+- **say** - Convert text to speech and save as MP3
+- **read** - Read a text file and convert it to speech  
+- **play** - Play audio files using system audio
+- **set_voice** - Change the voice used for generation
+- **get_voices** - List available voices and show current selection
+- **history** - List previously generated audio files with text summaries
 
 ## Dependencies
 
-- ElevenLabs API for text-to-speech generation
-- Beep library for audio playback
-- Mark3labs MCP-Go for MCP server functionality
+- [ElevenLabs API](https://elevenlabs.io) for text-to-speech generation
+- [Beep library](https://github.com/gopxl/beep) for audio playback
+- [MCP-Go](https://github.com/mark3labs/mcp-go) for MCP server functionality
+
+## License
+
+This project is licensed under the 0BSD License, written by [Rob Landley](https://github.com/landley).
+As such, you may use this library without restriction or attribution, but please don't pass it off as your own.
+Attribution, though not required, is appreciated.
+
+By contributing, you agree all code submitted also falls under the License.
