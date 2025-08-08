@@ -38,3 +38,4 @@ Thumbs.db
 !examples/**/*.wav
 !examples/**/*.m4a.xi/
 .xi/
+elevenlabs-mcp
