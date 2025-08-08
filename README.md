@@ -9,6 +9,7 @@ An MCP (Model Context Protocol) server that provides text-to-speech capabilities
 - **play**: Play audio files using the beep library
 - **set_voice**: Change the voice used for generation (memory only)
 - **get_voices**: List available voices and show currently selected one
+- **history**: List available audio files with text summaries
 
 ## Setup
 
@@ -55,9 +56,13 @@ Change the voice used for generation.
 List all available voices and show the currently selected one.
 - No parameters required
 
+### history
+List available audio files with text summaries.
+- No parameters required
+
 ## Audio Files
 
-Generated audio files are saved to `.crush/xi/<uuid>.mp3` and can be replayed using the `play` tool.
+Generated audio files are saved to `.xi/<timestamp>-<hex5>.mp3` with corresponding `.txt` files containing the original text. Files can be replayed using the `play` tool.
 
 ## Dependencies
 
