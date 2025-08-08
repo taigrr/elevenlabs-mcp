@@ -1,0 +1,40 @@
+# Crush directory
+.crush/
+
+# Go build artifacts
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+go.work
+
+# Dependency directories
+vendor/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Audio files (except examples)
+*.mp3
+*.wav
+*.m4a
+!examples/**/*.mp3
+!examples/**/*.wav
+!examples/**/*.m4a.xi/
+.xi/
