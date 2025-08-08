@@ -25,6 +25,7 @@ type ElevenLabsServer struct {
 	voices       []types.VoiceResponseModel
 	currentVoice *types.VoiceResponseModel
 	voicesMutex  sync.RWMutex
+	playMutex    sync.Mutex
 }
 
 func NewElevenLabsServer() (*ElevenLabsServer, error) {
@@ -116,6 +117,9 @@ func (s *ElevenLabsServer) generateAudio(text string) (string, error) {
 }
 
 func (s *ElevenLabsServer) playAudio(filepath string) error {
+	s.playMutex.Lock()
+	defer s.playMutex.Unlock()
+
 	file, err := os.Open(filepath)
 	if err != nil {
 		return fmt.Errorf("failed to open audio file: %w", err)
@@ -139,11 +143,19 @@ func (s *ElevenLabsServer) playAudio(filepath string) error {
 	return nil
 }
 
+func (s *ElevenLabsServer) playAudioAsync(filepath string) {
+	go func() {
+		if err := s.playAudio(filepath); err != nil {
+			log.Printf("Error playing audio: %v", err)
+		}
+	}()
+}
+
 func (s *ElevenLabsServer) setupTools(mcpServer *server.MCPServer) {
 	// Say tool
 	sayTool := mcp.Tool{
 		Name:        "say",
-		Description: "Convert text to speech and save as MP3 file",
+		Description: "Convert text to speech, save as MP3 file, and play the audio",
 		InputSchema: mcp.ToolInputSchema{
 			Type: "object",
 			Properties: map[string]any{
@@ -167,11 +179,14 @@ func (s *ElevenLabsServer) setupTools(mcpServer *server.MCPServer) {
 			return nil, err
 		}
 
+		// Play audio asynchronously
+		s.playAudioAsync(filepath)
+
 		return &mcp.CallToolResult{
 			Content: []mcp.Content{
 				mcp.TextContent{
 					Type: "text",
-					Text: fmt.Sprintf("Audio generated and saved to: %s", filepath),
+					Text: fmt.Sprintf("Audio generated, saved to %s, and playing", filepath),
 				},
 			},
 		}, nil
@@ -243,15 +258,14 @@ func (s *ElevenLabsServer) setupTools(mcpServer *server.MCPServer) {
 			return nil, err
 		}
 
-		if err := s.playAudio(filePath); err != nil {
-			return nil, err
-		}
+		// Play audio asynchronously
+		s.playAudioAsync(filePath)
 
 		return &mcp.CallToolResult{
 			Content: []mcp.Content{
 				mcp.TextContent{
 					Type: "text",
-					Text: fmt.Sprintf("Played audio file: %s", filePath),
+					Text: fmt.Sprintf("Playing audio file: %s", filePath),
 				},
 			},
 		}, nil
@@ -407,7 +421,7 @@ func (s *ElevenLabsServer) setupTools(mcpServer *server.MCPServer) {
 			// Try to read corresponding text file
 			textFile := strings.TrimSuffix(audioFile, ".mp3") + ".txt"
 			textPath := filepath.Join(".xi", textFile)
-			
+
 			summary := ""
 			if content, err := os.ReadFile(textPath); err == nil {
 				text := strings.TrimSpace(string(content))
@@ -457,4 +471,3 @@ func main() {
 		log.Fatalf("Failed to serve MCP server: %v", err)
 	}
 }
-
