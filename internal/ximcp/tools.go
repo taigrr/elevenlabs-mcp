@@ -5,203 +5,142 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/mark3labs/mcp-go/mcp"
-	"github.com/mark3labs/mcp-go/server"
+	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/taigrr/elevenlabs/client/types"
 )
 
-func (s *Server) SetupTools() {
-	s.mcpServer.AddTool(s.say())
-	s.mcpServer.AddTool(s.read())
-	s.mcpServer.AddTool(s.play())
-	s.mcpServer.AddTool(s.setVoice())
-	s.mcpServer.AddTool(s.getVoices())
-	s.mcpServer.AddTool(s.history())
+type SayArgs struct {
+	Text string `json:"text" jsonschema:"Text to convert to speech"`
 }
 
-func (s *Server) say() (mcp.Tool, server.ToolHandlerFunc) {
-	tool := mcp.Tool{
+type ReadArgs struct {
+	FilePath string `json:"file_path" jsonschema:"Path to the text file to read and convert to speech"`
+}
+
+type PlayArgs struct {
+	FilePath string `json:"file_path" jsonschema:"Path to the audio file to play"`
+}
+
+type SetVoiceArgs struct {
+	VoiceID string `json:"voice_id" jsonschema:"ID of the voice to use"`
+}
+
+func (s *Server) setupTools() {
+	mcp.AddTool(s.mcpServer, &mcp.Tool{
 		Name:        "say",
 		Description: "Convert text to speech, save as MP3 file, and play the audio",
-		InputSchema: mcp.ToolInputSchema{
-			Type: "object",
-			Properties: map[string]any{
-				"text": map[string]any{
-					"type":        "string",
-					"description": "Text to convert to speech",
-				},
-			},
-			Required: []string{"text"},
-		},
-	}
+	}, s.say)
 
-	handler := func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		text, err := request.RequireString("text")
-		if err != nil {
-			return nil, err
-		}
-
-		filepath, err := s.GenerateAudio(text)
-		if err != nil {
-			return nil, err
-		}
-
-		s.PlayAudioAsync(filepath)
-
-		return &mcp.CallToolResult{
-			Content: []mcp.Content{
-				mcp.TextContent{
-					Type: "text",
-					Text: fmt.Sprintf("Audio generated, saved to %s, and playing", filepath),
-				},
-			},
-		}, nil
-	}
-	return tool, handler
-}
-
-func (s *Server) read() (mcp.Tool, server.ToolHandlerFunc) {
-	tool := mcp.Tool{
+	mcp.AddTool(s.mcpServer, &mcp.Tool{
 		Name:        "read",
 		Description: "Read a text file and convert it to speech, saving as MP3",
-		InputSchema: mcp.ToolInputSchema{
-			Type: "object",
-			Properties: map[string]any{
-				"file_path": map[string]any{
-					"type":        "string",
-					"description": "Path to the text file to read and convert to speech",
-				},
-			},
-			Required: []string{"file_path"},
-		},
-	}
+	}, s.read)
 
-	handler := func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		filePath, err := request.RequireString("file_path")
-		if err != nil {
-			return nil, err
-		}
-
-		audioPath, err := s.ReadFileToAudio(filePath)
-		if err != nil {
-			return nil, err
-		}
-
-		return &mcp.CallToolResult{
-			Content: []mcp.Content{
-				mcp.TextContent{
-					Type: "text",
-					Text: fmt.Sprintf("File '%s' converted to speech and saved to: %s", filePath, audioPath),
-				},
-			},
-		}, nil
-	}
-	return tool, handler
-}
-
-func (s *Server) play() (mcp.Tool, server.ToolHandlerFunc) {
-	tool := mcp.Tool{
+	mcp.AddTool(s.mcpServer, &mcp.Tool{
 		Name:        "play",
 		Description: "Play an audio file",
-		InputSchema: mcp.ToolInputSchema{
-			Type: "object",
-			Properties: map[string]any{
-				"file_path": map[string]any{
-					"type":        "string",
-					"description": "Path to the audio file to play",
-				},
-			},
-			Required: []string{"file_path"},
-		},
-	}
+	}, s.play)
 
-	handler := func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		filePath, err := request.RequireString("file_path")
-		if err != nil {
-			return nil, err
-		}
-
-		s.PlayAudioAsync(filePath)
-
-		return &mcp.CallToolResult{
-			Content: []mcp.Content{
-				mcp.TextContent{
-					Type: "text",
-					Text: fmt.Sprintf("Playing audio file: %s", filePath),
-				},
-			},
-		}, nil
-	}
-	return tool, handler
-}
-
-func (s *Server) setVoice() (mcp.Tool, server.ToolHandlerFunc) {
-	tool := mcp.Tool{
+	mcp.AddTool(s.mcpServer, &mcp.Tool{
 		Name:        "set_voice",
 		Description: "Set the voice to use for text-to-speech generation",
-		InputSchema: mcp.ToolInputSchema{
-			Type: "object",
-			Properties: map[string]any{
-				"voice_id": map[string]any{
-					"type":        "string",
-					"description": "ID of the voice to use",
-				},
-			},
-			Required: []string{"voice_id"},
-		},
-	}
+	}, s.setVoice)
 
-	handler := func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		voiceID, err := request.RequireString("voice_id")
-		if err != nil {
-			return nil, err
-		}
-
-		selectedVoice, err := s.SetVoice(voiceID)
-		if err != nil {
-			return nil, err
-		}
-
-		return &mcp.CallToolResult{
-			Content: []mcp.Content{
-				mcp.TextContent{
-					Type: "text",
-					Text: fmt.Sprintf("Voice set to: %s (%s)", selectedVoice.Name, selectedVoice.VoiceID),
-				},
-			},
-		}, nil
-	}
-	return tool, handler
-}
-
-func (s *Server) getVoices() (mcp.Tool, server.ToolHandlerFunc) {
-	tool := mcp.Tool{
+	mcp.AddTool(s.mcpServer, &mcp.Tool{
 		Name:        "get_voices",
 		Description: "Get list of available voices and show the currently selected one",
-		InputSchema: mcp.ToolInputSchema{
-			Type:       "object",
-			Properties: map[string]any{},
-		},
-	}
+	}, s.getVoices)
 
-	handler := func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		voices, currentVoice, err := s.GetVoices()
-		if err != nil {
-			return nil, err
-		}
+	mcp.AddTool(s.mcpServer, &mcp.Tool{
+		Name:        "history",
+		Description: "List available audio files with text summaries",
+	}, s.history)
+}
 
-		voiceList := s.formatVoiceList(voices, currentVoice)
-
+func (s *Server) say(ctx context.Context, req *mcp.CallToolRequest, args SayArgs) (*mcp.CallToolResult, any, error) {
+	filepath, err := s.GenerateAudio(args.Text)
+	if err != nil {
 		return &mcp.CallToolResult{
 			Content: []mcp.Content{
-				mcp.TextContent{
-					Type: "text",
-					Text: voiceList,
-				},
+				&mcp.TextContent{Text: fmt.Sprintf("Error: %v", err)},
 			},
-		}, nil
+			IsError: true,
+		}, nil, nil
 	}
-	return tool, handler
+
+	s.PlayAudioAsync(filepath)
+
+	return &mcp.CallToolResult{
+		Content: []mcp.Content{
+			&mcp.TextContent{Text: fmt.Sprintf("Audio generated, saved to %s, and playing", filepath)},
+		},
+	}, nil, nil
+}
+
+func (s *Server) read(ctx context.Context, req *mcp.CallToolRequest, args ReadArgs) (*mcp.CallToolResult, any, error) {
+	audioPath, err := s.ReadFileToAudio(args.FilePath)
+	if err != nil {
+		return &mcp.CallToolResult{
+			Content: []mcp.Content{
+				&mcp.TextContent{Text: fmt.Sprintf("Error: %v", err)},
+			},
+			IsError: true,
+		}, nil, nil
+	}
+
+	return &mcp.CallToolResult{
+		Content: []mcp.Content{
+			&mcp.TextContent{Text: fmt.Sprintf("File '%s' converted to speech and saved to: %s", args.FilePath, audioPath)},
+		},
+	}, nil, nil
+}
+
+func (s *Server) play(ctx context.Context, req *mcp.CallToolRequest, args PlayArgs) (*mcp.CallToolResult, any, error) {
+	s.PlayAudioAsync(args.FilePath)
+
+	return &mcp.CallToolResult{
+		Content: []mcp.Content{
+			&mcp.TextContent{Text: fmt.Sprintf("Playing audio file: %s", args.FilePath)},
+		},
+	}, nil, nil
+}
+
+func (s *Server) setVoice(ctx context.Context, req *mcp.CallToolRequest, args SetVoiceArgs) (*mcp.CallToolResult, any, error) {
+	selectedVoice, err := s.SetVoice(args.VoiceID)
+	if err != nil {
+		return &mcp.CallToolResult{
+			Content: []mcp.Content{
+				&mcp.TextContent{Text: fmt.Sprintf("Error: %v", err)},
+			},
+			IsError: true,
+		}, nil, nil
+	}
+
+	return &mcp.CallToolResult{
+		Content: []mcp.Content{
+			&mcp.TextContent{Text: fmt.Sprintf("Voice set to: %s (%s)", selectedVoice.Name, selectedVoice.VoiceID)},
+		},
+	}, nil, nil
+}
+
+func (s *Server) getVoices(ctx context.Context, req *mcp.CallToolRequest, args struct{}) (*mcp.CallToolResult, any, error) {
+	voices, currentVoice, err := s.GetVoices()
+	if err != nil {
+		return &mcp.CallToolResult{
+			Content: []mcp.Content{
+				&mcp.TextContent{Text: fmt.Sprintf("Error: %v", err)},
+			},
+			IsError: true,
+		}, nil, nil
+	}
+
+	voiceList := s.formatVoiceList(voices, currentVoice)
+
+	return &mcp.CallToolResult{
+		Content: []mcp.Content{
+			&mcp.TextContent{Text: voiceList},
+		},
+	}, nil, nil
 }
 
 func (s *Server) formatVoiceList(voices []types.VoiceResponseModel, currentVoice *types.VoiceResponseModel) string {
@@ -227,45 +166,32 @@ func (s *Server) formatVoiceList(voices []types.VoiceResponseModel, currentVoice
 	return voiceList.String()
 }
 
-func (s *Server) history() (mcp.Tool, server.ToolHandlerFunc) {
-	tool := mcp.Tool{
-		Name:        "history",
-		Description: "List available audio files with text summaries",
-		InputSchema: mcp.ToolInputSchema{
-			Type:       "object",
-			Properties: map[string]any{},
-		},
-	}
-
-	handler := func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		audioFiles, err := s.GetAudioHistory()
-		if err != nil {
-			return nil, err
-		}
-
-		if len(audioFiles) == 0 {
-			return &mcp.CallToolResult{
-				Content: []mcp.Content{
-					mcp.TextContent{
-						Type: "text",
-						Text: "No audio files found",
-					},
-				},
-			}, nil
-		}
-
-		historyList := s.formatHistoryList(audioFiles)
-
+func (s *Server) history(ctx context.Context, req *mcp.CallToolRequest, args struct{}) (*mcp.CallToolResult, any, error) {
+	audioFiles, err := s.GetAudioHistory()
+	if err != nil {
 		return &mcp.CallToolResult{
 			Content: []mcp.Content{
-				mcp.TextContent{
-					Type: "text",
-					Text: historyList,
-				},
+				&mcp.TextContent{Text: fmt.Sprintf("Error: %v", err)},
 			},
-		}, nil
+			IsError: true,
+		}, nil, nil
 	}
-	return tool, handler
+
+	if len(audioFiles) == 0 {
+		return &mcp.CallToolResult{
+			Content: []mcp.Content{
+				&mcp.TextContent{Text: "No audio files found"},
+			},
+		}, nil, nil
+	}
+
+	historyList := s.formatHistoryList(audioFiles)
+
+	return &mcp.CallToolResult{
+		Content: []mcp.Content{
+			&mcp.TextContent{Text: historyList},
+		},
+	}, nil, nil
 }
 
 func (s *Server) formatHistoryList(audioFiles []AudioFile) string {

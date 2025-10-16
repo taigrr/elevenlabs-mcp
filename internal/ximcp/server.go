@@ -9,7 +9,7 @@ import (
 
 	"github.com/gopxl/beep/v2"
 	"github.com/gopxl/beep/v2/speaker"
-	"github.com/mark3labs/mcp-go/server"
+	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/taigrr/elevenlabs/client"
 	"github.com/taigrr/elevenlabs/client/types"
 )
@@ -24,7 +24,7 @@ const (
 )
 
 type Server struct {
-	mcpServer    *server.MCPServer
+	mcpServer    *mcp.Server
 	client       client.Client
 	voices       []types.VoiceResponseModel
 	currentVoice *types.VoiceResponseModel
@@ -32,13 +32,18 @@ type Server struct {
 	playMutex    sync.Mutex
 }
 
-func NewServer(mcpServer *server.MCPServer) (*Server, error) {
+func NewServer() (*mcp.Server, error) {
 	apiKey := os.Getenv("XI_API_KEY")
 	if apiKey == "" {
 		return nil, fmt.Errorf("XI_API_KEY environment variable is required")
 	}
 
 	elevenClient := client.New(apiKey)
+
+	mcpServer := mcp.NewServer(&mcp.Implementation{
+		Name:    "ElevenLabs MCP Server",
+		Version: "1.0.0",
+	}, nil)
 
 	s := &Server{
 		client:    elevenClient,
@@ -53,7 +58,9 @@ func NewServer(mcpServer *server.MCPServer) (*Server, error) {
 		return nil, fmt.Errorf("failed to initialize speaker: %w", err)
 	}
 
-	return s, nil
+	s.setupTools()
+
+	return mcpServer, nil
 }
 
 func (s *Server) initializeVoices() error {
