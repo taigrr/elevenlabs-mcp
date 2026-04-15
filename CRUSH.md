@@ -30,7 +30,6 @@
 - `history`: List available audio files with text summaries
 
 ## Dependencies
-- `github.com/mark3labs/mcp-go` - MCP server framework
+- `github.com/modelcontextprotocol/go-sdk` - MCP server framework (official SDK)
 - `github.com/taigrr/elevenlabs` - ElevenLabs API client
 - `github.com/gopxl/beep` - Audio playback
-- `github.com/google/uuid` - UUID generation

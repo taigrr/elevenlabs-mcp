@@ -54,7 +54,7 @@ The server provides the following tools to MCP clients:
 
 - [ElevenLabs API](https://elevenlabs.io) for text-to-speech generation
 - [Beep library](https://github.com/gopxl/beep) for audio playback
-- [MCP-Go](https://github.com/mark3labs/mcp-go) for MCP server functionality
+- [MCP Go SDK](https://github.com/modelcontextprotocol/go-sdk) for MCP server functionality
 
 ## License
 
