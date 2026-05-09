@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 )
 
@@ -36,6 +37,10 @@ func (s *Server) processAudioFiles(files []os.DirEntry) []AudioFile {
 			})
 		}
 	}
+
+	sort.Slice(audioFiles, func(firstIndex, secondIndex int) bool {
+		return audioFiles[firstIndex].Name > audioFiles[secondIndex].Name
+	})
 
 	return audioFiles
 }

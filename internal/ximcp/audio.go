@@ -16,10 +16,12 @@ import (
 	"github.com/taigrr/elevenlabs/client/types"
 )
 
-func generateRandomHex(length int) string {
+func generateRandomHex(length int) (string, error) {
 	bytes := make([]byte, length)
-	rand.Read(bytes)
-	return fmt.Sprintf("%x", bytes)[:length]
+	if _, err := rand.Read(bytes); err != nil {
+		return "", fmt.Errorf("generate random hex: %w", err)
+	}
+	return fmt.Sprintf("%x", bytes)[:length], nil
 }
 
 func (s *Server) GenerateAudio(text string) (string, error) {
@@ -48,7 +50,10 @@ func (s *Server) generateTTSAudio(text string) ([]byte, error) {
 }
 
 func (s *Server) saveAudioFiles(text string, audioData []byte) (string, error) {
-	filePath := s.generateFilePath()
+	filePath, err := s.generateFilePath()
+	if err != nil {
+		return "", err
+	}
 
 	if err := s.ensureDirectoryExists(filePath); err != nil {
 		return "", err
@@ -65,11 +70,14 @@ func (s *Server) saveAudioFiles(text string, audioData []byte) (string, error) {
 	return filePath, nil
 }
 
-func (s *Server) generateFilePath() string {
+func (s *Server) generateFilePath() (string, error) {
 	timestamp := time.Now().UnixMilli()
-	randomHex := generateRandomHex(RandomHexLength)
+	randomHex, err := generateRandomHex(RandomHexLength)
+	if err != nil {
+		return "", err
+	}
 	filename := fmt.Sprintf("%d-%s.mp3", timestamp, randomHex)
-	return filepath.Join(AudioDirectory, filename)
+	return filepath.Join(AudioDirectory, filename), nil
 }
 
 func (s *Server) ensureDirectoryExists(filePath string) error {

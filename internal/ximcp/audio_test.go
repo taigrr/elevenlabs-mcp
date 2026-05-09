@@ -8,8 +8,15 @@ import (
 )
 
 func TestGenerateRandomHex(t *testing.T) {
-	hex1 := generateRandomHex(RandomHexLength)
-	hex2 := generateRandomHex(RandomHexLength)
+	hex1, err := generateRandomHex(RandomHexLength)
+	if err != nil {
+		t.Fatalf("generateRandomHex failed: %v", err)
+	}
+
+	hex2, err := generateRandomHex(RandomHexLength)
+	if err != nil {
+		t.Fatalf("generateRandomHex failed: %v", err)
+	}
 
 	if len(hex1) != RandomHexLength {
 		t.Errorf("expected length %d, got %d", RandomHexLength, len(hex1))
@@ -35,7 +42,10 @@ func TestGenerateRandomHex(t *testing.T) {
 func TestGenerateFilePath(t *testing.T) {
 	s := &Server{}
 
-	path := s.generateFilePath()
+	path, err := s.generateFilePath()
+	if err != nil {
+		t.Fatalf("generateFilePath failed: %v", err)
+	}
 
 	if !strings.HasPrefix(path, AudioDirectory+string(filepath.Separator)) {
 		t.Errorf("path should start with %s/, got %q", AudioDirectory, path)
@@ -46,7 +56,10 @@ func TestGenerateFilePath(t *testing.T) {
 	}
 
 	// Two paths should differ (different timestamps or random hex)
-	path2 := s.generateFilePath()
+	path2, err := s.generateFilePath()
+	if err != nil {
+		t.Fatalf("generateFilePath failed: %v", err)
+	}
 	if path == path2 {
 		t.Error("two consecutive file paths should differ")
 	}
