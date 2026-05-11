@@ -91,19 +91,19 @@ func TestProcessAudioFiles(t *testing.T) {
 
 	tmpDir := t.TempDir()
 
-	// Create test files
-	mp3File := filepath.Join(tmpDir, "test.mp3")
-	txtFile := filepath.Join(tmpDir, "test.txt")
-	otherFile := filepath.Join(tmpDir, "readme.md")
+	files := map[string]string{
+		"1710000000000-aaaaa.mp3": "older audio",
+		"1710000000000-aaaaa.txt": "older summary",
+		"1710000000100-bbbbb.mp3": "newer audio",
+		"1710000000100-bbbbb.txt": "newer summary",
+		"readme.md":               "not audio",
+	}
 
-	if err := os.WriteFile(mp3File, []byte("fake audio"), 0644); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(txtFile, []byte("Hello world test"), 0644); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(otherFile, []byte("not audio"), 0644); err != nil {
-		t.Fatal(err)
+	for name, content := range files {
+		filePath := filepath.Join(tmpDir, name)
+		if err := os.WriteFile(filePath, []byte(content), 0644); err != nil {
+			t.Fatal(err)
+		}
 	}
 
 	entries, err := os.ReadDir(tmpDir)
@@ -113,13 +113,16 @@ func TestProcessAudioFiles(t *testing.T) {
 
 	result := s.processAudioFiles(entries)
 
-	// Should only include .mp3 files
-	if len(result) != 1 {
-		t.Fatalf("expected 1 audio file, got %d", len(result))
+	if len(result) != 2 {
+		t.Fatalf("expected 2 audio files, got %d", len(result))
 	}
 
-	if result[0].Name != "test.mp3" {
-		t.Errorf("expected name 'test.mp3', got %q", result[0].Name)
+	if result[0].Name != "1710000000100-bbbbb.mp3" {
+		t.Fatalf("expected newest file first, got %q", result[0].Name)
+	}
+
+	if result[1].Name != "1710000000000-aaaaa.mp3" {
+		t.Fatalf("expected older file second, got %q", result[1].Name)
 	}
 }
 
