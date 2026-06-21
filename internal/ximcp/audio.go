@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
@@ -25,6 +26,10 @@ func generateRandomHex(length int) (string, error) {
 }
 
 func (s *Server) GenerateAudio(text string) (string, error) {
+	if strings.TrimSpace(text) == "" {
+		return "", fmt.Errorf("text is required")
+	}
+
 	if s.currentVoice == nil {
 		return "", fmt.Errorf("no voice selected")
 	}
@@ -43,10 +48,21 @@ func (s *Server) GenerateAudio(text string) (string, error) {
 }
 
 func (s *Server) generateTTSAudio(text string) ([]byte, error) {
-	return s.client.TTS(context.Background(), text, s.currentVoice.VoiceID, "", types.SynthesisOptions{
+	audioStream, err := s.client.TTS(context.Background(), text, s.currentVoice.VoiceID, "", types.SynthesisOptions{
 		Stability:       DefaultStability,
 		SimilarityBoost: DefaultSimilarityBoost,
 	})
+	if err != nil {
+		return nil, err
+	}
+	defer audioStream.Close()
+
+	audioData, err := io.ReadAll(audioStream)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read audio stream: %w", err)
+	}
+
+	return audioData, nil
 }
 
 func (s *Server) saveAudioFiles(text string, audioData []byte) (string, error) {
@@ -103,6 +119,10 @@ func (s *Server) writeTextFile(filePath, text string) error {
 }
 
 func (s *Server) PlayAudio(filepath string) error {
+	if err := validateAudioFilePath(filepath); err != nil {
+		return err
+	}
+
 	s.playMutex.Lock()
 	defer s.playMutex.Unlock()
 
@@ -133,6 +153,22 @@ func (s *Server) playStreamer(streamer beep.StreamSeekCloser, format beep.Format
 	return nil
 }
 
+func validateAudioFilePath(filePath string) error {
+	if strings.TrimSpace(filePath) == "" {
+		return fmt.Errorf("audio file path is required")
+	}
+
+	info, err := os.Stat(filePath)
+	if err != nil {
+		return fmt.Errorf("failed to access audio file: %w", err)
+	}
+	if info.IsDir() {
+		return fmt.Errorf("audio file path is a directory")
+	}
+
+	return nil
+}
+
 func (s *Server) PlayAudioAsync(filepath string) {
 	go func() {
 		if err := s.PlayAudio(filepath); err != nil {
@@ -142,6 +178,10 @@ func (s *Server) PlayAudioAsync(filepath string) {
 }
 
 func (s *Server) ReadFileToAudio(filePath string) (string, error) {
+	if strings.TrimSpace(filePath) == "" {
+		return "", fmt.Errorf("file path is required")
+	}
+
 	content, err := os.ReadFile(filePath)
 	if err != nil {
 		return "", fmt.Errorf("failed to read file: %w", err)

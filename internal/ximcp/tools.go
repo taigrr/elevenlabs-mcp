@@ -96,6 +96,15 @@ func (s *Server) read(ctx context.Context, req *mcp.CallToolRequest, args ReadAr
 }
 
 func (s *Server) play(ctx context.Context, req *mcp.CallToolRequest, args PlayArgs) (*mcp.CallToolResult, any, error) {
+	if err := validateAudioFilePath(args.FilePath); err != nil {
+		return &mcp.CallToolResult{
+			Content: []mcp.Content{
+				&mcp.TextContent{Text: fmt.Sprintf("Error: %v", err)},
+			},
+			IsError: true,
+		}, nil, nil
+	}
+
 	s.PlayAudioAsync(args.FilePath)
 
 	return &mcp.CallToolResult{

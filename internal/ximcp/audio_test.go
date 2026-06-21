@@ -140,6 +140,60 @@ func TestReadFileToAudioFileNotFound(t *testing.T) {
 	}
 }
 
+func TestReadFileToAudioEmptyPath(t *testing.T) {
+	s := &Server{}
+
+	_, err := s.ReadFileToAudio("  ")
+	if err == nil {
+		t.Error("expected error for empty file path")
+	}
+	if !strings.Contains(err.Error(), "file path is required") {
+		t.Errorf("expected file path error, got: %v", err)
+	}
+}
+
+func TestGenerateAudioEmptyText(t *testing.T) {
+	s := &Server{}
+
+	_, err := s.GenerateAudio(" \t\n ")
+	if err == nil {
+		t.Error("expected error for empty text")
+	}
+	if !strings.Contains(err.Error(), "text is required") {
+		t.Errorf("expected text required error, got: %v", err)
+	}
+}
+
+func TestValidateAudioFilePath(t *testing.T) {
+	t.Run("empty path", func(t *testing.T) {
+		if err := validateAudioFilePath(" "); err == nil {
+			t.Fatal("expected error for empty path")
+		}
+	})
+
+	t.Run("missing file", func(t *testing.T) {
+		if err := validateAudioFilePath(filepath.Join(t.TempDir(), "missing.mp3")); err == nil {
+			t.Fatal("expected error for missing file")
+		}
+	})
+
+	t.Run("directory", func(t *testing.T) {
+		if err := validateAudioFilePath(t.TempDir()); err == nil {
+			t.Fatal("expected error for directory")
+		}
+	})
+
+	t.Run("valid file", func(t *testing.T) {
+		filePath := filepath.Join(t.TempDir(), "audio.mp3")
+		if err := os.WriteFile(filePath, []byte("fake mp3"), 0644); err != nil {
+			t.Fatal(err)
+		}
+		if err := validateAudioFilePath(filePath); err != nil {
+			t.Fatalf("expected valid file, got: %v", err)
+		}
+	})
+}
+
 func TestGenerateAudioNoVoice(t *testing.T) {
 	s := &Server{
 		currentVoice: nil,
