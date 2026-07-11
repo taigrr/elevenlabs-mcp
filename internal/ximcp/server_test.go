@@ -48,7 +48,7 @@ func TestFindVoiceByID(t *testing.T) {
 	}
 }
 
-func TestSetDefaultVoiceIfNeeded(t *testing.T) {
+func TestReconcileCurrentVoice(t *testing.T) {
 	t.Run("sets first voice when no current", func(t *testing.T) {
 		s := &Server{
 			voices: []types.VoiceResponseModel{
@@ -58,7 +58,7 @@ func TestSetDefaultVoiceIfNeeded(t *testing.T) {
 			currentVoice: nil,
 		}
 
-		s.setDefaultVoiceIfNeeded()
+		s.reconcileCurrentVoice()
 
 		if s.currentVoice == nil {
 			t.Fatal("expected current voice to be set")
@@ -78,10 +78,53 @@ func TestSetDefaultVoiceIfNeeded(t *testing.T) {
 			currentVoice: &bob,
 		}
 
-		s.setDefaultVoiceIfNeeded()
+		s.reconcileCurrentVoice()
 
 		if s.currentVoice.Name != "Bob" {
 			t.Errorf("expected voice to remain 'Bob', got %q", s.currentVoice.Name)
+		}
+	})
+
+	t.Run("updates selected voice to refreshed slice", func(t *testing.T) {
+		previousBob := types.VoiceResponseModel{VoiceID: "def456", Name: "Old Bob"}
+		s := &Server{
+			voices: []types.VoiceResponseModel{
+				{VoiceID: "abc123", Name: "Alice"},
+				{VoiceID: "def456", Name: "Refreshed Bob"},
+			},
+			currentVoice: &previousBob,
+		}
+
+		s.reconcileCurrentVoice()
+
+		if s.currentVoice == nil {
+			t.Fatal("expected current voice to remain selected")
+		}
+		if s.currentVoice.Name != "Refreshed Bob" {
+			t.Errorf("expected refreshed voice data, got %q", s.currentVoice.Name)
+		}
+		if s.currentVoice != &s.voices[1] {
+			t.Error("expected current voice to point at refreshed voices slice")
+		}
+	})
+
+	t.Run("falls back when selected voice is missing", func(t *testing.T) {
+		missingVoice := types.VoiceResponseModel{VoiceID: "missing", Name: "Missing"}
+		s := &Server{
+			voices: []types.VoiceResponseModel{
+				{VoiceID: "abc123", Name: "Alice"},
+				{VoiceID: "def456", Name: "Bob"},
+			},
+			currentVoice: &missingVoice,
+		}
+
+		s.reconcileCurrentVoice()
+
+		if s.currentVoice == nil {
+			t.Fatal("expected current voice fallback")
+		}
+		if s.currentVoice.VoiceID != "abc123" {
+			t.Errorf("expected first voice fallback, got %q", s.currentVoice.VoiceID)
 		}
 	})
 
@@ -91,7 +134,7 @@ func TestSetDefaultVoiceIfNeeded(t *testing.T) {
 			currentVoice: nil,
 		}
 
-		s.setDefaultVoiceIfNeeded()
+		s.reconcileCurrentVoice()
 
 		if s.currentVoice != nil {
 			t.Error("expected no voice when list is empty")
