@@ -27,8 +27,8 @@ github.com/segmentio/encoding v0.5.4 h1:OW1VRern8Nw6ITAtwSZ7Idrl3MXCFwXHPgqESYfv
 github.com/segmentio/encoding v0.5.4/go.mod h1:HS1ZKa3kSN32ZHVZ7ZLPLXWvOVIiZtyJnO1gPH1sKt0=
 github.com/stretchr/testify v1.10.0 h1:Xv5erBjTwe/5IxqUQTdXv5kgmIvbHo3QQyRwhJsOfJA=
 github.com/stretchr/testify v1.10.0/go.mod h1:r2ic/lqez/lEtzL7wO/rwa5dbSLXVDPFyf8C91i36aY=
-github.com/taigrr/elevenlabs v0.2.0 h1:Naw73I9iwj6P/L+ulOQV8UllsEH0L8FYKkm3apv8Cwk=
-github.com/taigrr/elevenlabs v0.2.0/go.mod h1:xzEJCuIwOigaENQ9Cm7tInjbihS+UKVkcebqlZeSd8E=
+github.com/taigrr/elevenlabs v0.2.4 h1:tH9m472HCfBcBvy2uvEbZyKDCabkFNFb9BqRSds/I4U=
+github.com/taigrr/elevenlabs v0.2.4/go.mod h1:y8sqQY+WQpSsT7SWGU9ACfucBP4ApgUXAvNSBIsnjQk=
 github.com/yosida95/uritemplate/v3 v3.0.2 h1:Ed3Oyj9yrmi9087+NczuL5BwkIc4wvTb5zIM+UJPGz4=
 github.com/yosida95/uritemplate/v3 v3.0.2/go.mod h1:ILOh0sOhIJR3+L/8afwt/kE++YT040gmv5BQTMR2HP4=
 golang.org/x/oauth2 v0.36.0 h1:peZ/1z27fi9hUOFCAZaHyrpWG5lwe0RJEEEeH0ThlIs=

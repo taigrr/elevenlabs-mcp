@@ -1,11 +1,11 @@
 module github.com/taigrr/elevenlabs-mcp
 
-go 1.26.4
+go 1.26.5
 
 require (
 	github.com/gopxl/beep/v2 v2.1.1
 	github.com/modelcontextprotocol/go-sdk v1.6.1
-	github.com/taigrr/elevenlabs v0.2.0
+	github.com/taigrr/elevenlabs v0.2.4
 )
 
 require (
