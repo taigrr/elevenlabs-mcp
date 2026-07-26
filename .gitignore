@@ -39,3 +39,6 @@ Thumbs.db
 !examples/**/*.m4a.xi/
 .xi/
 elevenlabs-mcp
+
+# GoReleaser output
+dist/

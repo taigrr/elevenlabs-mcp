@@ -1,5 +1,6 @@
 # elevenlabs-mcp
 
+[![Test](https://github.com/taigrr/elevenlabs-mcp/actions/workflows/test.yml/badge.svg)](https://github.com/taigrr/elevenlabs-mcp/actions/workflows/test.yml)
 [![License 0BSD](https://img.shields.io/badge/License-0BSD-pink.svg)](https://opensource.org/licenses/0BSD)
 [![GoDoc](https://godoc.org/github.com/taigrr/elevenlabs-mcp?status.svg)](https://godoc.org/github.com/taigrr/elevenlabs-mcp)
 [![Go Report Card](https://goreportcard.com/badge/github.com/taigrr/elevenlabs-mcp)](https://goreportcard.com/report/github.com/taigrr/elevenlabs-mcp)

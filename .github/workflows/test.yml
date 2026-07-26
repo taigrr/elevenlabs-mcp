@@ -13,8 +13,18 @@ jobs:
           go-version-file: go.mod
       - name: Install ALSA dev headers
         run: sudo apt-get update && sudo apt-get install -y libasound2-dev
-      - run: go test -race ./...
+      - name: Check formatting
+        run: |
+          go install golang.org/x/tools/cmd/goimports@latest
+          diff <(echo -n) <(goimports -l .)
+      - name: Check go mod tidy
+        run: go mod tidy -diff
       - run: go vet ./...
       - run: go install honnef.co/go/tools/cmd/staticcheck@latest
       - run: staticcheck ./...
       - run: go build ./...
+      - run: go test -race ./...
+      - name: Vulnerability check
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          govulncheck ./...
