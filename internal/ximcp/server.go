@@ -86,14 +86,27 @@ func (s *Server) refreshVoices() error {
 	}
 
 	s.voices = voices
-	s.setDefaultVoiceIfNeeded()
+	s.reconcileCurrentVoice()
 	return nil
 }
 
-func (s *Server) setDefaultVoiceIfNeeded() {
-	if s.currentVoice == nil && len(s.voices) > 0 {
-		s.currentVoice = &s.voices[0]
+func (s *Server) reconcileCurrentVoice() {
+	if len(s.voices) == 0 {
+		s.currentVoice = nil
+		return
 	}
+
+	if s.currentVoice == nil {
+		s.currentVoice = &s.voices[0]
+		return
+	}
+
+	if selectedVoice := s.findVoiceByID(s.currentVoice.VoiceID); selectedVoice != nil {
+		s.currentVoice = selectedVoice
+		return
+	}
+
+	s.currentVoice = &s.voices[0]
 }
 
 func (s *Server) GetVoices() ([]types.VoiceResponseModel, *types.VoiceResponseModel, error) {
