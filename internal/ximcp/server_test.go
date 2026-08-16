@@ -35,6 +35,7 @@ func TestFindVoiceByID(t *testing.T) {
 			if tt.found {
 				if voice == nil {
 					t.Fatal("expected voice, got nil")
+					return
 				}
 				if voice.Name != tt.expected {
 					t.Errorf("expected name %q, got %q", tt.expected, voice.Name)
@@ -161,6 +162,9 @@ func TestSetVoice(t *testing.T) {
 		if s.currentVoice.VoiceID != "def456" {
 			t.Error("currentVoice not updated")
 		}
+		if voice == s.currentVoice {
+			t.Error("SetVoice should not expose the internal currentVoice pointer")
+		}
 	})
 
 	t.Run("set invalid voice", func(t *testing.T) {
@@ -204,6 +208,66 @@ func TestFormatVoiceList(t *testing.T) {
 	if !contains(result, "Currently selected: Alice") {
 		t.Error("expected currently selected line")
 	}
+}
+
+func TestVoiceSnapshot(t *testing.T) {
+	alice := types.VoiceResponseModel{VoiceID: "abc123", Name: "Alice"}
+	s := &Server{
+		voices: []types.VoiceResponseModel{
+			alice,
+			{VoiceID: "def456", Name: "Bob"},
+		},
+		currentVoice: &alice,
+	}
+
+	voices, currentVoice := s.voiceSnapshot()
+	if len(voices) != 2 {
+		t.Fatalf("expected 2 voices, got %d", len(voices))
+	}
+	if currentVoice == nil {
+		t.Fatal("expected current voice snapshot")
+	}
+	if currentVoice == s.currentVoice {
+		t.Error("current voice snapshot should not expose internal pointer")
+	}
+
+	voices[0].Name = "Changed"
+	currentVoice.Name = "Also Changed"
+
+	if s.voices[0].Name != "Alice" {
+		t.Errorf("voice snapshot mutated internal voices: %q", s.voices[0].Name)
+	}
+	if s.currentVoice.Name != "Alice" {
+		t.Errorf("current voice snapshot mutated internal voice: %q", s.currentVoice.Name)
+	}
+}
+
+func TestCurrentVoiceID(t *testing.T) {
+	t.Run("selected voice", func(t *testing.T) {
+		s := &Server{
+			currentVoice: &types.VoiceResponseModel{VoiceID: "abc123", Name: "Alice"},
+		}
+
+		voiceID, err := s.currentVoiceID()
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if voiceID != "abc123" {
+			t.Errorf("expected voice id abc123, got %q", voiceID)
+		}
+	})
+
+	t.Run("no selected voice", func(t *testing.T) {
+		s := &Server{}
+
+		_, err := s.currentVoiceID()
+		if err == nil {
+			t.Fatal("expected error")
+		}
+		if !strings.Contains(err.Error(), "no voice selected") {
+			t.Errorf("expected no voice selected error, got: %v", err)
+		}
+	})
 }
 
 func TestFormatVoiceListNoSelection(t *testing.T) {
