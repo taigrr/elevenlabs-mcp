@@ -35,6 +35,7 @@ func TestFindVoiceByID(t *testing.T) {
 			if tt.found {
 				if voice == nil {
 					t.Fatal("expected voice, got nil")
+					return
 				}
 				if voice.Name != tt.expected {
 					t.Errorf("expected name %q, got %q", tt.expected, voice.Name)

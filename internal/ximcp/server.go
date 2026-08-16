@@ -72,7 +72,9 @@ func (s *Server) initializeVoices() error {
 
 func (s *Server) initializeSpeaker() error {
 	sr := beep.SampleRate(AudioSampleRate)
-	speaker.Init(sr, sr.N(time.Second/10))
+	if err := speaker.Init(sr, sr.N(time.Second/10)); err != nil {
+		return fmt.Errorf("failed to initialize speaker: %w", err)
+	}
 	return nil
 }
 
