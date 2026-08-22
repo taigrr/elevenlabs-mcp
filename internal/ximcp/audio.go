@@ -55,7 +55,9 @@ func (s *Server) generateTTSAudio(text string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer audioStream.Close()
+	defer func() {
+		_ = audioStream.Close()
+	}()
 
 	audioData, err := io.ReadAll(audioStream)
 	if err != nil {
@@ -130,13 +132,17 @@ func (s *Server) PlayAudio(filepath string) error {
 	if err != nil {
 		return fmt.Errorf("failed to open audio file: %w", err)
 	}
-	defer file.Close()
+	defer func() {
+		_ = file.Close()
+	}()
 
 	streamer, format, err := mp3.Decode(file)
 	if err != nil {
 		return fmt.Errorf("failed to decode mp3: %w", err)
 	}
-	defer streamer.Close()
+	defer func() {
+		_ = streamer.Close()
+	}()
 
 	return s.playStreamer(streamer, format)
 }

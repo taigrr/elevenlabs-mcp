@@ -161,13 +161,13 @@ func (s *Server) formatVoiceList(voices []types.VoiceResponseModel, currentVoice
 		if currentVoice != nil && voice.VoiceID == currentVoice.VoiceID {
 			marker = "* "
 		}
-		voiceList.WriteString(fmt.Sprintf("%s%s (%s) - %s\n",
-			marker, voice.Name, voice.VoiceID, voice.Category))
+		fmt.Fprintf(&voiceList, "%s%s (%s) - %s\n",
+			marker, voice.Name, voice.VoiceID, voice.Category)
 	}
 
 	if currentVoice != nil {
-		voiceList.WriteString(fmt.Sprintf("\nCurrently selected: %s (%s)",
-			currentVoice.Name, currentVoice.VoiceID))
+		fmt.Fprintf(&voiceList, "\nCurrently selected: %s (%s)",
+			currentVoice.Name, currentVoice.VoiceID)
 	} else {
 		voiceList.WriteString("\nNo voice currently selected")
 	}
@@ -208,7 +208,7 @@ func (s *Server) formatHistoryList(audioFiles []AudioFile) string {
 	historyList.WriteString("Available audio files:\n\n")
 
 	for _, audioFile := range audioFiles {
-		historyList.WriteString(fmt.Sprintf("• %s\n  %s\n\n", audioFile.Name, audioFile.Summary))
+		fmt.Fprintf(&historyList, "• %s\n  %s\n\n", audioFile.Name, audioFile.Summary)
 	}
 
 	return historyList.String()
