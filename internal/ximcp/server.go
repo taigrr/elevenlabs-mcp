@@ -116,10 +116,33 @@ func (s *Server) GetVoices() ([]types.VoiceResponseModel, *types.VoiceResponseMo
 		return nil, nil, err
 	}
 
+	voices, currentVoice := s.voiceSnapshot()
+	return voices, currentVoice, nil
+}
+
+func (s *Server) voiceSnapshot() ([]types.VoiceResponseModel, *types.VoiceResponseModel) {
 	s.voicesMutex.RLock()
 	defer s.voicesMutex.RUnlock()
 
-	return s.voices, s.currentVoice, nil
+	voices := append([]types.VoiceResponseModel(nil), s.voices...)
+	var currentVoice *types.VoiceResponseModel
+	if s.currentVoice != nil {
+		voice := *s.currentVoice
+		currentVoice = &voice
+	}
+
+	return voices, currentVoice
+}
+
+func (s *Server) currentVoiceID() (string, error) {
+	s.voicesMutex.RLock()
+	defer s.voicesMutex.RUnlock()
+
+	if s.currentVoice == nil {
+		return "", fmt.Errorf("no voice selected")
+	}
+
+	return s.currentVoice.VoiceID, nil
 }
 
 func (s *Server) SetVoice(voiceID string) (*types.VoiceResponseModel, error) {
@@ -132,7 +155,8 @@ func (s *Server) SetVoice(voiceID string) (*types.VoiceResponseModel, error) {
 	}
 
 	s.currentVoice = selectedVoice
-	return selectedVoice, nil
+	voice := *selectedVoice
+	return &voice, nil
 }
 
 func (s *Server) findVoiceByID(voiceID string) *types.VoiceResponseModel {

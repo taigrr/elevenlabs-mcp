@@ -30,11 +30,12 @@ func (s *Server) GenerateAudio(text string) (string, error) {
 		return "", fmt.Errorf("text is required")
 	}
 
-	if s.currentVoice == nil {
-		return "", fmt.Errorf("no voice selected")
+	voiceID, err := s.currentVoiceID()
+	if err != nil {
+		return "", err
 	}
 
-	audioData, err := s.generateTTSAudio(text)
+	audioData, err := s.generateTTSAudio(text, voiceID)
 	if err != nil {
 		return "", err
 	}
@@ -47,8 +48,8 @@ func (s *Server) GenerateAudio(text string) (string, error) {
 	return filePath, nil
 }
 
-func (s *Server) generateTTSAudio(text string) ([]byte, error) {
-	audioStream, err := s.client.TTS(context.Background(), text, s.currentVoice.VoiceID, "", types.SynthesisOptions{
+func (s *Server) generateTTSAudio(text, voiceID string) ([]byte, error) {
+	audioStream, err := s.client.TTS(context.Background(), text, voiceID, "", types.SynthesisOptions{
 		Stability:       DefaultStability,
 		SimilarityBoost: DefaultSimilarityBoost,
 	})
