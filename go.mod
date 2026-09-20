@@ -4,7 +4,7 @@ go 1.26.6
 
 require (
 	github.com/gopxl/beep/v2 v2.1.1
-	github.com/modelcontextprotocol/go-sdk v1.7.0
+	github.com/modelcontextprotocol/go-sdk v1.8.0
 	github.com/taigrr/elevenlabs v0.2.5
 )
 
