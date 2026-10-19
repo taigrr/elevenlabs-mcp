@@ -3,6 +3,7 @@ package ximcp
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -59,30 +60,65 @@ func TestCreateSummary(t *testing.T) {
 func TestGetAudioHistoryEmptyDir(t *testing.T) {
 	s := &Server{}
 
-	// Temporarily override the audio directory to a non-existent path
-	origDir := AudioDirectory
-	t.Cleanup(func() {
-		// AudioDirectory is a const, so we test the behavior as-is
-		_ = origDir
-	})
+	t.Chdir(t.TempDir())
 
-	// GetAudioHistory with non-existent directory should return empty
-	tmpDir := t.TempDir()
-	nonExistent := filepath.Join(tmpDir, "does-not-exist")
-
-	// We can't override the const, so test processAudioFiles directly
-	entries, err := os.ReadDir(nonExistent)
+	result, err := s.GetAudioHistory()
 	if err != nil {
-		// Expected — directory doesn't exist
-		if !os.IsNotExist(err) {
-			t.Fatalf("unexpected error: %v", err)
-		}
-		return
+		t.Fatalf("GetAudioHistory failed: %v", err)
 	}
 
-	result := s.processAudioFiles(entries)
 	if len(result) != 0 {
 		t.Errorf("expected empty result, got %d files", len(result))
+	}
+}
+
+func TestGetAudioHistoryReadsSummaries(t *testing.T) {
+	s := &Server{}
+
+	t.Chdir(t.TempDir())
+
+	if err := os.Mkdir(AudioDirectory, 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	files := map[string]string{
+		"1710000000000-aaaaa.mp3": "",
+		"1710000000000-aaaaa.txt": "older audio",
+		"1710000000100-bbbbb.mp3": "",
+		"1710000000100-bbbbb.txt": "one two three four five six seven eight nine ten eleven",
+		"readme.md":               "not audio",
+	}
+
+	for name, content := range files {
+		filePath := filepath.Join(AudioDirectory, name)
+		if err := os.WriteFile(filePath, []byte(content), 0644); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	result, err := s.GetAudioHistory()
+	if err != nil {
+		t.Fatalf("GetAudioHistory failed: %v", err)
+	}
+
+	if len(result) != 2 {
+		t.Fatalf("expected 2 audio files, got %d", len(result))
+	}
+
+	if result[0].Name != "1710000000100-bbbbb.mp3" {
+		t.Fatalf("expected newest file first, got %q", result[0].Name)
+	}
+
+	if !strings.HasSuffix(result[0].Summary, "...") {
+		t.Errorf("expected long summary to be truncated, got %q", result[0].Summary)
+	}
+
+	if result[1].Name != "1710000000000-aaaaa.mp3" {
+		t.Fatalf("expected older file second, got %q", result[1].Name)
+	}
+
+	if result[1].Summary != "older audio" {
+		t.Errorf("expected text summary, got %q", result[1].Summary)
 	}
 }
 
