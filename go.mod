@@ -2,6 +2,8 @@ module github.com/taigrr/elevenlabs-mcp
 
 go 1.27.2
 
+toolchain go1.27.3
+
 require (
 	github.com/gopxl/beep/v2 v2.1.1
 	github.com/modelcontextprotocol/go-sdk v1.8.0
