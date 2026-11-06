@@ -1,6 +1,6 @@
 module github.com/taigrr/elevenlabs-mcp
 
-go 1.27.2
+go 1.27.3
 
 require (
 	github.com/gopxl/beep/v2 v2.1.1
@@ -10,7 +10,7 @@ require (
 
 require (
 	github.com/ebitengine/oto/v3 v3.5.1 // indirect
-	github.com/ebitengine/purego v0.11.1 // indirect
+	github.com/ebitengine/purego v0.11.3 // indirect
 	github.com/google/jsonschema-go v0.4.3 // indirect
 	github.com/hajimehoshi/go-mp3 v0.3.4 // indirect
 	github.com/jfreymuth/pulse v0.1.3 // indirect
