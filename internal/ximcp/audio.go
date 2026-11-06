@@ -172,6 +172,9 @@ func validateAudioFilePath(filePath string) error {
 	if info.IsDir() {
 		return fmt.Errorf("audio file path is a directory")
 	}
+	if !info.Mode().IsRegular() {
+		return fmt.Errorf("audio file path must be a regular file")
+	}
 
 	return nil
 }
