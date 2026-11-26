@@ -185,3 +185,32 @@ func TestGetAudioSummary(t *testing.T) {
 		t.Errorf("expected empty summary, got %q", summary)
 	}
 }
+
+func TestGetAudioHistorySkipsNonRegularEntries(t *testing.T) {
+	t.Chdir(t.TempDir())
+	if err := os.Mkdir(AudioDirectory, 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(AudioDirectory, "valid.mp3"), nil, 0644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Mkdir(filepath.Join(AudioDirectory, "directory.mp3"), 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink("valid.mp3", filepath.Join(AudioDirectory, "link.mp3")); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink("missing.mp3", filepath.Join(AudioDirectory, "broken.mp3")); err != nil {
+		t.Fatal(err)
+	}
+	result, err := (&Server{}).GetAudioHistory()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(result) != 1 || result[0].Name != "valid.mp3" {
+		t.Fatalf("expected only regular audio file, got %+v", result)
+	}
+	if result[0].Summary != "(no text summary available)" {
+		t.Fatalf("unexpected missing-summary fallback: %q", result[0].Summary)
+	}
+}
