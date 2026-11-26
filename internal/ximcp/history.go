@@ -30,6 +30,10 @@ func (s *Server) processAudioFiles(files []os.DirEntry) []AudioFile {
 
 	for _, file := range files {
 		if strings.HasSuffix(file.Name(), ".mp3") {
+			info, err := file.Info()
+			if err != nil || !info.Mode().IsRegular() {
+				continue
+			}
 			summary := s.getAudioSummary(file.Name())
 			audioFiles = append(audioFiles, AudioFile{
 				Name:    file.Name(),
